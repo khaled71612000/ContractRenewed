@@ -40,6 +40,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual float GetMaxHealth() const;
 
+		
+	UPROPERTY(EditAnywhere, BlueprintReadWrite,  Category = "Abilities")
+	bool bCanPunchToken = false;
+
 protected:
 	/**********************************
 	 *         Class Overrides

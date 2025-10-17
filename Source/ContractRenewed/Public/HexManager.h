@@ -10,6 +10,25 @@
 #include "NavigationSystem.h"
 #include "HexManager.generated.h"
 
+USTRUCT(BlueprintType)
+struct FPickupSpawnData
+{
+    GENERATED_BODY()
+
+public:
+    UPROPERTY(EditAnywhere, Category = "Pickup")
+    TSubclassOf<AActor> PickupClass;
+
+    UPROPERTY(EditAnywhere, Category = "Pickup")
+    int32 SpawnAmount = 5;
+
+    UPROPERTY(EditAnywhere, Category = "Pickup")
+    float MinHeightOffset = 100.f;
+
+    UPROPERTY(EditAnywhere, Category = "Pickup")
+    float MaxHeightOffset = 200.f;
+};
+
 UCLASS()
 class CONTRACTRENEWED_API AHexManager : public AActor
 {
@@ -18,20 +37,22 @@ class CONTRACTRENEWED_API AHexManager : public AActor
 public:
     AHexManager();
 
-    UFUNCTION(BlueprintCallable, Category = "HexGrid")
-    void GenerateNewLoop(
-        int32 InGridW = 5,
-        int32 InGridH = 5,
-        float InEnemySpawnChance = 0.03f,
-        float InPickupSpawnChance = 0.04f,
-        float InPropSpawnChance = 0.10f,
-        EFastNoise_NoiseType InNoiseType = EFastNoise_NoiseType::Simplex,
-        int32 InSeed = 1337,
-        float InFrequency = 0.01f,
-        int32 InOctaves = 3,
-        float InLacunarity = 2.0f,
-        float InGain = 0.5f,
-        float InCellularJitter = 0.45f);
+	UFUNCTION(BlueprintCallable, Category = "HexGrid")
+	void GenerateNewLoop(
+		int32 InGridW,
+		int32 InGridH,
+		int32 InEnemySpawnAmount,
+		int32 InPropSpawnAmount,
+		EFastNoise_NoiseType InNoiseType,
+		int32 InSeed,
+		float InFrequency,
+		int32 InOctaves,
+		float InLacunarity,
+		float InGain,
+		float InCellularJitter,
+		TArray<FPickupSpawnData> InPickupSpawnData
+	);
+
 
 protected:
     virtual void BeginPlay() override;
@@ -69,20 +90,20 @@ protected:
     UPROPERTY(EditAnywhere, Category = "Spawning")
     TArray<TSubclassOf<AHopperBaseCharacter>> EnemyTypes;
 
-    UPROPERTY(EditAnywhere, Category="Spawning")
-    TArray<TSubclassOf<AActor>> PickupActors; 
+	UPROPERTY(EditAnywhere, Category = "Spawning")
+	TArray<FPickupSpawnData> PickupSpawnData;
 
     UPROPERTY(EditAnywhere, Category="Spawning")
     TArray<TSubclassOf<AActor>> PropActors;
 
-    UPROPERTY(EditAnywhere, Category = "Spawning")
-    float EnemySpawnChance = 0.03f;
+    void SpawnPickups();
+    void SpawnProps();
 
-    UPROPERTY(EditAnywhere, Category = "Spawning")
-    float PickupSpawnChance = 0.04f;
+   UPROPERTY(EditAnywhere, Category = "Enemy")
+    int32 EnemySpawnAmount = 5;
 
-    UPROPERTY(EditAnywhere, Category = "Spawning")
-    float PropSpawnChance = 0.10f;
+    UPROPERTY(EditAnywhere, Category = "Enemy")
+    int32 PropSpawnAmount = 5;
 
     UPROPERTY()
     TArray<AActor*> SpawnedActors;
