@@ -3,9 +3,10 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "HexTile.h"
-#include "Components/InstancedStaticMeshComponent.h"
+#include "Components/HierarchicalInstancedStaticMeshComponent.h"
 #include "HexGridSettings.h"
 #include "FastNoiseWrapper.h"
+#include "Actors/HopperBaseCharacter.h"
 #include "HexManager.generated.h"
 
 struct FDebugInfo
@@ -23,6 +24,28 @@ public:
     AHexManager();
 
 protected:
+
+	UPROPERTY(EditAnywhere, Category = "Spawning")
+	TArray<TSubclassOf<AHopperBaseCharacter>> EnemyTypes;
+
+    UPROPERTY(EditAnywhere, Category="Spawning")
+    TArray<TSubclassOf<AActor>> PickupActors; 
+
+	UPROPERTY()
+	TArray<AActor*> SpawnedActors;
+
+	UPROPERTY(EditAnywhere, Category = "Spawning")
+	float EnemySpawnChance = 0.03f;
+
+	UPROPERTY(EditAnywhere, Category = "Spawning")
+	float PickupSpawnChance = 0.04f;
+
+    UPROPERTY(EditAnywhere, Category="Spawning")
+    TArray<TSubclassOf<AActor>> PropActors;
+
+	UPROPERTY(EditAnywhere, Category = "Spawning")
+    float PropSpawnChance = 0.10f;
+
     void DestroyTiles();
 
     UPROPERTY(EditAnywhere, Category = "HexGrid|Layout")
@@ -37,14 +60,36 @@ protected:
     UPROPERTY(EditAnywhere, Category = "HexGrid|Setup")
     float HeightStrength = 1.f;
 
-    UPROPERTY(EditAnywhere)
-    UInstancedStaticMeshComponent* GrassMeshComp;
-
     UFUNCTION(CallInEditor, Category = "HexGrid")
     void GenerateHexGrid();
 
-    UPROPERTY(EditAnywhere)
-    UInstancedStaticMeshComponent* WaterMeshComp;
+	UFUNCTION(BlueprintCallable, Category = "HexGrid")
+	void GenerateNewLoop(
+		int32 InGridW = 5,
+		int32 InGridH = 5,
+		float InEnemySpawnChance = 0.03f,
+		float InPickupSpawnChance = 0.04f,
+		float InPropSpawnChance = 0.10f,
+		EFastNoise_NoiseType InNoiseType = EFastNoise_NoiseType::Simplex,
+		int32 InSeed = 1337,
+		float InFrequency = 0.01f,
+		int32 InOctaves = 3,
+		float InLacunarity = 2.0f,
+		float InGain = 0.5f,
+		float InCellularJitter = 0.45f);
+
+
+    UPROPERTY(EditAnywhere, Category="HexGrid")
+    UStaticMesh* GrassMesh;
+
+    UPROPERTY(EditAnywhere, Category="HexGrid")
+    UStaticMesh* WaterMesh;
+
+    UPROPERTY(VisibleDefaultsOnly, Category="Hex", meta=(AllowPrivateAccess="true"))
+    UHierarchicalInstancedStaticMeshComponent* GrassMeshComp;
+
+	UPROPERTY(VisibleDefaultsOnly, Category = "Hex", meta = (AllowPrivateAccess = "true"))
+	UHierarchicalInstancedStaticMeshComponent* WaterMeshComp;
 
     UPROPERTY(EditAnywhere, Category = "HexGrid|NoiseLvl1")
     EFastNoise_NoiseType NoiseType = EFastNoise_NoiseType::Simplex;
@@ -80,8 +125,6 @@ protected:
     EFastNoise_CellularReturnType CellularReturnType = EFastNoise_CellularReturnType::CellValue;
 
 private:
-    TArray<TArray<AHexTile*>> HexGridArray;
-    UPROPERTY()
+
     UHexGridSettings* Settings;
-    TArray<FDebugInfo> PersistentDebugInfo;
 };
