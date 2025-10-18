@@ -36,6 +36,9 @@ public:
 
     UPROPERTY(EditAnywhere, Category="Spawn")
     bool bRandomRotate = true;
+
+    UPROPERTY(EditAnywhere, Category="Spawn|Behavior")
+    bool bNaturalPlacement = false;
 };
 
 UCLASS()

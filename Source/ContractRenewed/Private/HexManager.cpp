@@ -153,30 +153,91 @@ void AHexManager::SpawnAllActors(const TArray<FSpawnableData>& InSpawnables)
                 UsedTiles.Add(TileIndex);
             }
 
-            // Base position of that tile
             FVector BasePos = TilePositions[TileIndex];
             float HeightOffset = FMath::FRandRange(Data.MinHeightOffset, Data.MaxHeightOffset);
 
-            // Stack on previous ones if tile was already used
-            int32& StackCount = TileStackCounts.FindOrAdd(TileIndex);
-            if (StackCount > 0)
+            // New logic enabled by bool flag
+            if (Data.bNaturalPlacement)
             {
-                HeightOffset += StackCount * 100.f;
+                // Cluster logic (Step 4)
+                int32 ClusterSize = FMath::RandRange(2, 5);
+                FVector ClusterCenter = BasePos;
+
+                for (int32 j = 0; j < ClusterSize; ++j)
+                {
+                    FVector ClusterOffset = FMath::VRand() * FMath::RandRange(100.f, 300.f);
+                    FVector SpawnLoc = ClusterCenter + ClusterOffset + FVector(0, 0, HeightOffset);
+                    FRotator SpawnRot = Data.bRandomRotate
+                        ? FRotator(0.f, FMath::FRandRange(0.f, 360.f), 0.f)
+                        : FRotator::ZeroRotator;
+
+                    // Glitch placement (Step 6)
+                    if (FMath::FRand() < 0.1f)
+                    {
+                        SpawnLoc.Z -= 50.f;
+                        SpawnRot.Pitch += FMath::RandRange(-30.f, 30.f);
+                        SpawnRot.Roll += FMath::RandRange(-15.f, 15.f);
+                    }
+
+                    // Ground alignment (Step 3)
+                    FHitResult Hit;
+                    FVector TraceStart = SpawnLoc + FVector(0, 0, 500.f);
+                    FVector TraceEnd = SpawnLoc - FVector(0, 0, 1000.f);
+
+                    if (World->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, ECC_WorldStatic))
+                    {
+                        SpawnLoc = Hit.ImpactPoint;
+
+                        // Get rotation from surface normal
+                        FRotator SurfaceRot = Hit.ImpactNormal.Rotation();
+
+                        // Randomize yaw only, keeping slope tilt
+                        float RandomYaw = FMath::FRandRange(0.f, 360.f);
+                        FRotator RandomRot(0.f, RandomYaw, 0.f);
+
+                        // Combine them
+                        SpawnRot = (SurfaceRot.Quaternion() * RandomRot.Quaternion()).Rotator();
+
+                        // Slightly reduce pitch/roll so props don't lean too much
+                        SpawnRot.Pitch *= 0.5f;
+                        SpawnRot.Roll *= 0.5f;
+                    }
+                    else
+                    {
+                        // Fallback if no ground hit
+                        SpawnLoc.Z += HeightOffset;
+                    }
+
+                    if (AActor* Spawned = World->SpawnActor<AActor>(Data.ActorClass, SpawnLoc, SpawnRot))
+                    {
+                        SpawnedActors.Add(Spawned);
+                    }
+                }
             }
-
-            FVector SpawnLoc = BasePos + FVector(0, 0, HeightOffset);
-            FRotator SpawnRot = Data.bRandomRotate
-                ? FRotator(0.f, FMath::FRandRange(0.f, 360.f), 0.f)
-                : FRotator::ZeroRotator;
-
-            if (AActor* Spawned = World->SpawnActor<AActor>(Data.ActorClass, SpawnLoc, SpawnRot))
+            else
             {
-                SpawnedActors.Add(Spawned);
-                StackCount++;
+                // Default simple spawn behavior
+                int32& StackCount = TileStackCounts.FindOrAdd(TileIndex);
+                if (StackCount > 0)
+                {
+                    HeightOffset += StackCount * 100.f;
+                }
+
+                FVector SpawnLoc = BasePos + FVector(0, 0, HeightOffset);
+                FRotator SpawnRot = Data.bRandomRotate
+                    ? FRotator(0.f, FMath::FRandRange(0.f, 360.f), 0.f)
+                    : FRotator::ZeroRotator;
+
+                if (AActor* Spawned = World->SpawnActor<AActor>(Data.ActorClass, SpawnLoc, SpawnRot))
+                {
+                    SpawnedActors.Add(Spawned);
+                    StackCount++;
+                }
             }
         }
     }
 }
+
 
 void AHexManager::SpawnAllActorsInEditor()
 {
