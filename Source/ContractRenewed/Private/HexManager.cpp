@@ -10,6 +10,7 @@ AHexManager::AHexManager()
     bRunConstructionScriptOnDrag = false;
 
     RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComp"));
+
     GrassMeshComp = CreateDefaultSubobject<UHierarchicalInstancedStaticMeshComponent>(TEXT("GrassMeshComp"));
     GrassMeshComp->SetupAttachment(RootComponent);
 
@@ -41,6 +42,7 @@ void AHexManager::DestroyTiles()
         if (IsValid(Spawned))
             Spawned->Destroy();
     }
+
     SpawnedActors.Empty();
     TilePositions.Empty();
 }
@@ -53,42 +55,42 @@ void AHexManager::GenerateHexGrid()
     UHexGridSubsystem* Subsystem = World->GetSubsystem<UHexGridSubsystem>();
     if (!Subsystem) return;
 
-    UFastNoiseWrapper* NoiseWrapperLvl1 = Subsystem->NoiseWrapperLvl1;
-    if (!NoiseWrapperLvl1 || !GrassMesh || !WaterMesh) return;
+    UFastNoiseWrapper* NoiseWrapper = Subsystem->NoiseWrapperLvl1;
+    if (!NoiseWrapper || !GrassMesh || !WaterMesh) return;
 
     GrassMeshComp->SetStaticMesh(GrassMesh);
     WaterMeshComp->SetStaticMesh(WaterMesh);
 
-    NoiseWrapperLvl1->SetupFastNoise(
+    NoiseWrapper->SetupFastNoise(
         NoiseType, Seed, Frequency, Interp, Fractaltype,
         Octaves, Lacunarity, Gain, CellularJitter,
         CellularDistanceFunction, CellularReturnType);
 
-    if (!NoiseWrapperLvl1->IsInitialized()) return;
+    if (!NoiseWrapper->IsInitialized()) return;
 
     DestroyTiles();
 
-    for (int32 y = 0; y < GridHeight; y++)
+    for (int32 y = 0; y < GridHeight; ++y)
     {
-        for (int32 x = 0; x < GridWidth; x++)
+        for (int32 x = 0; x < GridWidth; ++x)
         {
-            const bool oddRow = y % 2 == 1;
-            const float xPos = oddRow
+            const bool bOddRow = (y % 2 == 1);
+            const float XPos = bOddRow
                 ? (x * Settings->TileHorizontalOffset) + Settings->OddRowHorizontalOffset
                 : x * Settings->TileHorizontalOffset;
-            const float yPos = y * Settings->TileVerticalOffset;
+            const float YPos = y * Settings->TileVerticalOffset;
 
-            const float noiseValue = NoiseWrapperLvl1->GetNoise2D(xPos, yPos);
-            const FVector localPos(xPos, yPos, noiseValue * HeightStrength);
-            const FVector worldPos = GetActorLocation() + localPos;
-            TilePositions.Add(worldPos);
+            const float NoiseValue = NoiseWrapper->GetNoise2D(XPos, YPos);
+            const FVector LocalPos(XPos, YPos, NoiseValue * HeightStrength);
+            const FVector WorldPos = GetActorLocation() + LocalPos;
+            TilePositions.Add(WorldPos);
 
-            UInstancedStaticMeshComponent* Comp = noiseValue >= 0.f ? GrassMeshComp : WaterMeshComp;
-            Comp->AddInstance(FTransform(localPos));
+            UInstancedStaticMeshComponent* MeshComp = NoiseValue >= 0.f ? GrassMeshComp : WaterMeshComp;
+            MeshComp->AddInstance(FTransform(LocalPos));
         }
     }
 
-    // Start delayed spawn after navmesh rebuild
+    // Delay until navmesh is ready
     GetWorldTimerManager().SetTimerForNextTick(this, &AHexManager::SpawnEnemiesAfterNavMeshReady);
 }
 
@@ -99,116 +101,90 @@ void AHexManager::SpawnEnemiesAfterNavMeshReady()
 
     if (NavSys->IsNavigationBeingBuiltOrLocked(GetWorld()))
     {
-        // NavMesh is still locked (building), retry soon
         FTimerHandle RetryHandle;
-        GetWorldTimerManager().SetTimer(RetryHandle, this, &AHexManager::SpawnEnemiesAfterNavMeshReady, 0.2f, false);
+        GetWorldTimerManager().SetTimer(RetryHandle, this, &AHexManager::SpawnEnemiesAfterNavMeshReady, 0.25f, false);
         return;
     }
 
-
-    SpawnPickups();
-    SpawnProps();
-    SpawnEnemies();
+    // Once navmesh ready, spawn everything
+    SpawnAllActorsInEditor();
 }
 
-void AHexManager::SpawnEnemies()
+void AHexManager::SpawnAllActors(const TArray<FSpawnableData>& InSpawnables)
 {
     UWorld* World = GetWorld();
-    if (!World || TilePositions.Num() == 0 || EnemyTypes.Num() == 0) return;
+    if (!World || TilePositions.IsEmpty()) return;
 
-    for (int32 i = 0; i < EnemySpawnAmount; ++i)
+    // Track how many actors are stacked per tile
+    TMap<int32, int32> TileStackCounts;
+    // Track which tiles are already occupied
+    TSet<int32> UsedTiles;
+
+    for (const FSpawnableData& Data : InSpawnables)
     {
-        int32 TileIndex = FMath::RandRange(0, TilePositions.Num() - 1);
-        FVector SpawnLoc = TilePositions[TileIndex] + FVector(0, 0, 150.f);
-
-        int32 EnemyIndex = FMath::RandRange(0, EnemyTypes.Num() - 1);
-        TSubclassOf<AHopperBaseCharacter> EnemyClass = EnemyTypes[EnemyIndex];
-        if (!EnemyClass) continue;
-
-        AActor* Spawned = World->SpawnActor<AActor>(EnemyClass, SpawnLoc, FRotator::ZeroRotator);
-        if (Spawned)
-            SpawnedActors.Add(Spawned);
-    }
-}
-
-
-void AHexManager::SpawnPickups()
-{
-    UWorld* World = GetWorld();
-    if (!World || TilePositions.Num() == 0) return;
-
-    for (const FPickupSpawnData& Data : PickupSpawnData)
-    {
-        if (!Data.PickupClass || Data.SpawnAmount <= 0) continue;
+        if (!Data.ActorClass || Data.SpawnAmount <= 0) continue;
 
         for (int32 i = 0; i < Data.SpawnAmount; ++i)
         {
-            const int32 TileIndex = FMath::RandRange(0, TilePositions.Num() - 1);
-            const FVector BasePos = TilePositions[TileIndex];
+            int32 TileIndex = -1;
 
-            const float HeightOffset = FMath::FRandRange(Data.MinHeightOffset, Data.MaxHeightOffset);
-            const FVector SpawnLoc = BasePos + FVector(0, 0, HeightOffset);
+            // If stacking chance succeeds and there are already used tiles, pick one to stack on
+            if (Data.bAllowStacking && FMath::FRand() < Data.StackChance && UsedTiles.Num() > 0)
+            {
+                // Pick a random used tile to stack on
+                TileIndex = UsedTiles.Array()[FMath::RandRange(0, UsedTiles.Num() - 1)];
+            }
+            else
+            {
+                // Pick a completely new tile (not used yet)
+                int32 SafetyCounter = 0;
+                do
+                {
+                    TileIndex = FMath::RandRange(0, TilePositions.Num() - 1);
+                    SafetyCounter++;
+                } while (UsedTiles.Contains(TileIndex) && SafetyCounter < 200);
 
-            AActor* Spawned = World->SpawnActor<AActor>(
-                Data.PickupClass,
-                SpawnLoc,
-                FRotator::ZeroRotator
-            );
+                if (SafetyCounter >= 200)
+                {
+                    UE_LOG(LogTemp, Warning, TEXT("SpawnAllActors: ran out of unique tiles for %s"), *GetNameSafe(Data.ActorClass));
+                    break;
+                }
 
-            if (Spawned)
+                UsedTiles.Add(TileIndex);
+            }
+
+            // Base position of that tile
+            FVector BasePos = TilePositions[TileIndex];
+            float HeightOffset = FMath::FRandRange(Data.MinHeightOffset, Data.MaxHeightOffset);
+
+            // Stack on previous ones if tile was already used
+            int32& StackCount = TileStackCounts.FindOrAdd(TileIndex);
+            if (StackCount > 0)
+            {
+                HeightOffset += StackCount * 100.f;
+            }
+
+            FVector SpawnLoc = BasePos + FVector(0, 0, HeightOffset);
+            FRotator SpawnRot = Data.bRandomRotate
+                ? FRotator(0.f, FMath::FRandRange(0.f, 360.f), 0.f)
+                : FRotator::ZeroRotator;
+
+            if (AActor* Spawned = World->SpawnActor<AActor>(Data.ActorClass, SpawnLoc, SpawnRot))
+            {
                 SpawnedActors.Add(Spawned);
+                StackCount++;
+            }
         }
     }
 }
 
-void AHexManager::SpawnProps()
+void AHexManager::SpawnAllActorsInEditor()
 {
-    UWorld* World = GetWorld();
-    if (!World || PropActors.Num() == 0 || TilePositions.Num() == 0) return;
+	if (Spawnables.IsEmpty())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No spawn data defined."));
+		return;
+	}
 
-    for (int32 i = 0; i < PropSpawnAmount; ++i)
-    {
-        int32 TileIndex = FMath::RandRange(0, TilePositions.Num() - 1);
-        FVector SpawnLoc = TilePositions[TileIndex];
-
-        int32 PropIndex = FMath::RandRange(0, PropActors.Num() - 1);
-        TSubclassOf<AActor> PropClass = PropActors[PropIndex];
-        if (!PropClass) continue;
-
-        AActor* Spawned = World->SpawnActor<AActor>(PropClass, SpawnLoc, FRotator::ZeroRotator);
-        if (Spawned)
-            SpawnedActors.Add(Spawned);
-    }
-}
-
-void AHexManager::GenerateNewLoop(
-    int32 InGridW,
-    int32 InGridH,
-    int32 InEnemySpawnAmount,
-    int32 InPropSpawnAmount,
-    EFastNoise_NoiseType InNoiseType,
-    int32 InSeed,
-    float InFrequency,
-    int32 InOctaves,
-    float InLacunarity,
-    float InGain,
-    float InCellularJitter,
-    TArray<FPickupSpawnData> InPickupSpawnData
-)
-{
-    GridWidth = InGridW;
-    GridHeight = InGridH;
-    EnemySpawnAmount = InEnemySpawnAmount;
-    PropSpawnAmount = InPropSpawnAmount;
-    NoiseType = InNoiseType;
-    Seed = InSeed;
-    Frequency = InFrequency;
-    Octaves = InOctaves;
-    Lacunarity = InLacunarity;
-    Gain = InGain;
-    CellularJitter = InCellularJitter;
-    PickupSpawnData = InPickupSpawnData;
-
-    DestroyTiles();
-    GenerateHexGrid();
+	SpawnAllActors(Spawnables);
 }
