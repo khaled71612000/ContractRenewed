@@ -213,7 +213,8 @@ void AHexManager::SpawnAllActors(const TArray<FSpawnableData>& InSpawnables)
                         : FRotator::ZeroRotator;
 
                     // Glitch placement
-                    if (FMath::FRand() < 0.1f)
+                    bool bIsGlitched = FMath::FRand() < 0.25f;
+                    if (bIsGlitched)
                     {
                         SpawnLoc.Z -= 50.f;
                         SpawnRot.Pitch += FMath::RandRange(-30.f, 30.f);
@@ -248,6 +249,16 @@ void AHexManager::SpawnAllActors(const TArray<FSpawnableData>& InSpawnables)
                     if (AActor* Spawned = World->SpawnActor<AActor>(Data.ActorClass, SpawnLoc, SpawnRot))
                     {
                         SpawnedActors.Add(Spawned);
+
+                        if (bIsGlitched && GlitchMaterialInstance)
+                        {
+                            TArray<UStaticMeshComponent*> MeshComponents;
+                            Spawned->GetComponents<UStaticMeshComponent>(MeshComponents);
+                            for (UStaticMeshComponent* MeshComp : MeshComponents)
+                            {
+                                MeshComp->SetMaterial(0, GlitchMaterialInstance);
+                            }
+                        }
                     }
                 }
             }

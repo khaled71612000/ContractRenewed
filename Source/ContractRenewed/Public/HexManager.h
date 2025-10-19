@@ -49,6 +49,12 @@ class CONTRACTRENEWED_API AHexManager : public AActor
 public:
     AHexManager();
 
+     UPROPERTY(EditAnywhere, Category="HexGrid|Setup")
+    int32 TargetCoinCount = 10;
+
+    UPROPERTY(EditAnywhere, Category="HexGrid|Materials")
+    UMaterialInstance* GlitchMaterialInstance;
+
 protected:
     virtual void BeginPlay() override;
 
@@ -62,6 +68,9 @@ protected:
     // Unified spawn system
     UFUNCTION(BlueprintCallable, Category = "HexGrid")
     void SpawnAllActors(const TArray<FSpawnableData>& InSpawnables);
+
+    UFUNCTION(BlueprintCallable, Category = "HexGrid")
+    int32 GetTargetCoinCount() {return TargetCoinCount;};
 
     UFUNCTION(BlueprintCallable, Category = "HexGrid|Testing")
     void SpawnAllActorsInEditor();
