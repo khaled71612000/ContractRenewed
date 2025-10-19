@@ -61,6 +61,7 @@ void AHexManager::GenerateHexGrid()
     GrassMeshComp->SetStaticMesh(GrassMesh);
     WaterMeshComp->SetStaticMesh(WaterMesh);
 
+    // --- Base noise setup ---
     NoiseWrapper->SetupFastNoise(
         NoiseType, Seed, Frequency, Interp, Fractaltype,
         Octaves, Lacunarity, Gain, CellularJitter,
@@ -70,11 +71,15 @@ void AHexManager::GenerateHexGrid()
 
     DestroyTiles();
 
-    // --- Center point for radial falloff ---
+    // --- Center and radius ---
     const float GridHalfWidth = GridWidth * Settings->TileHorizontalOffset * 0.5f;
     const float GridHalfHeight = GridHeight * Settings->TileVerticalOffset * 0.5f;
     const FVector2D Center(GridHalfWidth, GridHalfHeight);
-    const float MaxDist = FMath::Min(GridHalfWidth, GridHalfHeight) * 0.95f; // keeps circular radius a bit inside bounds
+    const float MaxDist = FMath::Min(GridHalfWidth, GridHalfHeight) * 0.95f;
+
+    // --- Randomize seed a bit to avoid sameness across runs ---
+    const int32 LocalSeedOffset = FMath::RandRange(0, 10000);
+    const int32 DetailSeedOffset = LocalSeedOffset + 5000;
 
     for (int32 y = 0; y < GridHeight; ++y)
     {
@@ -86,33 +91,36 @@ void AHexManager::GenerateHexGrid()
                 : x * Settings->TileHorizontalOffset;
             const float YPos = y * Settings->TileVerticalOffset;
 
-            // --- Distance from center ---
-            const float Dist = FVector2D::Distance(FVector2D(XPos, YPos), Center);
+            const FVector2D TilePos(XPos, YPos);
+            const float Dist = FVector2D::Distance(TilePos, Center);
 
-            // --- Skip tiles completely outside circular island ---
             if (Dist > MaxDist * 1.05f)
-                continue; // do not create any tile here
+                continue;
 
-            // --- Base noise ---
-            const float NoiseValue = NoiseWrapper->GetNoise2D(XPos, YPos);
+            // --- Multi-layer noise for more natural variation ---
+            const float BaseNoise = NoiseWrapper->GetNoise2D(XPos, YPos);
+            const float LargeNoise = NoiseWrapper->GetNoise2D(XPos * 0.8f + LocalSeedOffset, YPos * 0.8f + LocalSeedOffset);
+            const float DetailNoise = NoiseWrapper->GetNoise2D(XPos * 4.0f + DetailSeedOffset, YPos * 4.0f + DetailSeedOffset);
 
-            // --- Radial falloff ---
+            // --- Blend ---
+            float CombinedNoise = (LargeNoise * 0.7f + DetailNoise * 0.3f);
             const float Falloff = FMath::Clamp(1.0f - (Dist / MaxDist), 0.0f, 1.0f);
 
-            // --- Blend noise and falloff ---
-            const float HeightValue = (NoiseValue * 0.4f + Falloff * 0.6f) * HeightStrength;
+            // --- Exaggerate noise vs. falloff to make sharper hills ---
+            float HeightValue = (CombinedNoise * 0.8f + Falloff * 0.3f) * HeightStrength;
+
+            // --- Optional voxel-like step effect (like Minecraft) ---
+            HeightValue = FMath::RoundToFloat(HeightValue / 50.f) * 50.f;
 
             const FVector LocalPos(XPos, YPos, HeightValue);
             const FVector WorldPos = GetActorLocation() + LocalPos;
             TilePositions.Add(WorldPos);
 
-            // --- Choose sand or water mesh ---
             UInstancedStaticMeshComponent* MeshComp = (HeightValue >= 0.f) ? GrassMeshComp : WaterMeshComp;
             MeshComp->AddInstance(FTransform(LocalPos));
         }
     }
 
-    // Delay until navmesh is ready
     GetWorldTimerManager().SetTimerForNextTick(this, &AHexManager::SpawnEnemiesAfterNavMeshReady);
 }
 

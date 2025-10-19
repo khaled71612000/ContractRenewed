@@ -79,7 +79,18 @@ void AHopperBaseCharacter::NotifyJumpApex()
 
 void AHopperBaseCharacter::PossessedBy(AController* NewController)
 {
+
+#if WITH_EDITOR
+	if (GIsEditor && !GetWorld()->IsPlayInEditor())
+		return;
+#endif
+
 	Super::PossessedBy(NewController);
+
+	if (!AbilitySystemComponent->IsActive())
+	{
+		AbilitySystemComponent->InitAbilityActorInfo(this, this);
+	}
 
 	// Server GAS init
 	if (AbilitySystemComponent)
@@ -91,7 +102,17 @@ void AHopperBaseCharacter::PossessedBy(AController* NewController)
 
 void AHopperBaseCharacter::OnRep_PlayerState()
 {
+#if WITH_EDITOR
+	if (GIsEditor && !GetWorld()->IsPlayInEditor())
+		return;
+#endif
+
 	Super::OnRep_PlayerState();
+
+	if (!AbilitySystemComponent->IsActive())
+	{
+		AbilitySystemComponent->InitAbilityActorInfo(this, this);
+	}
 
 	AbilitySystemComponent->InitAbilityActorInfo(this, this);
 
@@ -273,6 +294,19 @@ float AHopperBaseCharacter::GetHealth() const
 float AHopperBaseCharacter::GetMaxHealth() const
 {
 	return Attributes->GetMaxHealth();
+}
+
+void AHopperBaseCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->CancelAllAbilities();
+		AbilitySystemComponent->RemoveAllGameplayCues();
+		AbilitySystemComponent->ClearAllAbilities();
+		AbilitySystemComponent->RemoveLooseGameplayTag(DeadTag);
+	}
+
+	Super::EndPlay(EndPlayReason);
 }
 
 void AHopperBaseCharacter::Animate(float DeltaTime, FVector OldLocation, const FVector OldVelocity)

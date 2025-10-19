@@ -54,7 +54,7 @@ protected:
 
     void DestroyTiles();
 
-    UFUNCTION(CallInEditor, Category = "HexGrid|Testing")
+    UFUNCTION(BlueprintCallable, Category = "HexGrid|Testing")
     void GenerateHexGrid();
 
     void SpawnEnemiesAfterNavMeshReady();
@@ -63,7 +63,7 @@ protected:
     UFUNCTION(BlueprintCallable, Category = "HexGrid")
     void SpawnAllActors(const TArray<FSpawnableData>& InSpawnables);
 
-    UFUNCTION(CallInEditor, Category = "HexGrid|Testing")
+    UFUNCTION(BlueprintCallable, Category = "HexGrid|Testing")
     void SpawnAllActorsInEditor();
 
     // --- Tile & Grid Data ---
@@ -130,6 +130,7 @@ protected:
     EFastNoise_CellularReturnType CellularReturnType = EFastNoise_CellularReturnType::CellValue;
 
 private:
+    UPROPERTY()
     UHexGridSettings* Settings;
     TArray<FVector> TilePositions;
 };

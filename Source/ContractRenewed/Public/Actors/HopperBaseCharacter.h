@@ -44,6 +44,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,  Category = "Abilities")
 	bool bCanPunchToken = false;
 
+
+	void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 protected:
 	/**********************************
 	 *         Class Overrides
