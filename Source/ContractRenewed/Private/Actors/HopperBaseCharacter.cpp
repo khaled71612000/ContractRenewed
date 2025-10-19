@@ -4,6 +4,12 @@
 
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig.h"
+#include "UObject/TopLevelAssetPath.h"
+
+static const FTopLevelAssetPath AbilityInputEnumPath(
+	TEXT("/Script/ContractRenewed"),
+	TEXT("EHopperAbilityInputID")
+);
 
 AHopperBaseCharacter::AHopperBaseCharacter()
 {
@@ -120,11 +126,12 @@ void AHopperBaseCharacter::OnRep_PlayerState()
 	if (AbilitySystemComponent && InputComponent)
 	{
 		const FGameplayAbilityInputBinds Binds(
-			"Confirm",
-			"Cancel",
-			"EHopperAbilityInputID",
+			TEXT("Confirm"),
+			TEXT("Cancel"),
+			AbilityInputEnumPath,
 			static_cast<int32>(EHopperAbilityInputID::Confirm),
-			static_cast<int32>(EHopperAbilityInputID::Cancel));
+			static_cast<int32>(EHopperAbilityInputID::Cancel)
+		);
 
 		AbilitySystemComponent->BindAbilityActivationToInputComponent(InputComponent, Binds);
 	}
