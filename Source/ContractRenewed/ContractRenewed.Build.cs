@@ -14,11 +14,14 @@ public class ContractRenewed : ModuleRules
 		// Gameplay Ability System
 		PublicDependencyModuleNames.AddRange(new string[] {"GameplayAbilities", "GameplayTags", "GameplayTasks"});
 
-		// Automation Dependencies
-		PublicDependencyModuleNames.AddRange(new string[] {"UnrealEd"});
-		
-		// UI
-		PrivateDependencyModuleNames.AddRange(new string[] {"Slate", "SlateCore"});
+        // Automation Dependencies
+        if (Target.bBuildEditor)
+        {
+            PrivateDependencyModuleNames.AddRange(new string[] { "UnrealEd" });
+        }
+
+        // UI
+        PrivateDependencyModuleNames.AddRange(new string[] {"Slate", "SlateCore"});
 		
 		// AI
 		PrivateDependencyModuleNames.AddRange(new string[] {"AIModule", "NavigationSystem"});

@@ -7,7 +7,6 @@
 AHexManager::AHexManager()
 {
     PrimaryActorTick.bCanEverTick = false;
-    bRunConstructionScriptOnDrag = false;
 
     RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComp"));
 

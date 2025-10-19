@@ -7,9 +7,14 @@ public class ContractRenewedTarget : TargetRules
 {
 	public ContractRenewedTarget(TargetInfo Target) : base(Target)
 	{
-		Type = TargetType.Game;
-		DefaultBuildSettings = BuildSettingsVersion.V2;
+        Type = TargetType.Game;
 
-		ExtraModuleNames.AddRange( new string[] { "ContractRenewed" } );
+        DefaultBuildSettings = BuildSettingsVersion.V5;
+        IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_6;
+        CppStandard = CppStandardVersion.Cpp20;
+        WindowsPlatform.bStrictConformanceMode = true;
+        bValidateFormatStrings = true;
+
+        ExtraModuleNames.AddRange( new string[] { "ContractRenewed" } );
 	}
 }
