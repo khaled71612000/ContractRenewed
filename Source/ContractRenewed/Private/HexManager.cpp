@@ -213,7 +213,7 @@ void AHexManager::SpawnAllActors(const TArray<FSpawnableData>& InSpawnables)
                         : FRotator::ZeroRotator;
 
                     // Glitch placement
-                    bool bIsGlitched = FMath::FRand() < 0.25f;
+                    bool bIsGlitched = FMath::FRand() < 0.38f;
                     if (bIsGlitched)
                     {
                         SpawnLoc.Z -= 50.f;
