@@ -115,6 +115,8 @@ void AHexManager::GenerateHexGrid()
             const FVector WorldPos = GetActorLocation() + LocalPos;
             TilePositions.Add(WorldPos);
 
+            AActor::UpdateComponentTransforms();
+
             UInstancedStaticMeshComponent* MeshComp = (HeightValue >= 0.f) ? GrassMeshComp : WaterMeshComp;
             MeshComp->AddInstance(FTransform(LocalPos));
         }
