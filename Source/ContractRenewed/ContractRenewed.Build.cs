@@ -9,7 +9,7 @@ public class ContractRenewed : ModuleRules
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
 		// Core
-		PublicDependencyModuleNames.AddRange(new string[] {"Core", "CoreUObject", "Engine", "InputCore", "DeveloperSettings", "FastNoiseGenerator", "FastNoise" });
+		PublicDependencyModuleNames.AddRange(new string[] {"Core", "CoreUObject", "Engine", "InputCore", "DeveloperSettings", "FastNoiseGenerator", "FastNoise"});
 
 		// Gameplay Ability System
 		PublicDependencyModuleNames.AddRange(new string[] {"GameplayAbilities", "GameplayTags", "GameplayTasks"});

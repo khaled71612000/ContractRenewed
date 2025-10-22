@@ -260,6 +260,7 @@ void AHopperBaseCharacter::ApplyPunchForceToCharacter(const FVector FromLocation
 		Direction.X * AttackForce,
 		Direction.Y * AttackForce,
 		abs(Direction.Z + 1) * AttackForce));
+
 }
 
 void AHopperBaseCharacter::OnFootstepNative()

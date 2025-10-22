@@ -16,6 +16,7 @@ class UHopperAttributeSet;
 class UAIPerceptionComponent;
 class USphereComponent;
 
+
 /**
  * Base character class
  */
@@ -43,7 +44,6 @@ public:
 		
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,  Category = "Abilities")
 	bool bCanPunchToken = false;
-
 
 	void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 

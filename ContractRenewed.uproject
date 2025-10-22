@@ -30,6 +30,10 @@
 		{
 			"Name": "GameplayAbilities",
 			"Enabled": true
+		},
+		{
+			"Name": "Test",
+			"Enabled": true
 		}
 	],
 	"TargetPlatforms": [
