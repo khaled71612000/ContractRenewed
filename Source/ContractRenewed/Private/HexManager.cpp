@@ -76,6 +76,16 @@ void AHexManager::GenerateHexGrid()
     const FVector2D Center(GridHalfWidth, GridHalfHeight);
     const float MaxDist = FMath::Min(GridHalfWidth, GridHalfHeight) * 0.95f;
 
+    // --- Optional random gap setup ---
+    FVector2D GapCenter;
+    if (bCreateRandomGap)
+    {
+        GapCenter = FVector2D(
+            FMath::FRandRange(0.f, GridWidth * Settings->TileHorizontalOffset),
+            FMath::FRandRange(0.f, GridHeight * Settings->TileVerticalOffset)
+        );
+    }
+
     // --- Randomize seed a bit to avoid sameness across runs ---
     const int32 LocalSeedOffset = FMath::RandRange(0, 10000);
     const int32 DetailSeedOffset = LocalSeedOffset + 5000;
@@ -91,6 +101,11 @@ void AHexManager::GenerateHexGrid()
             const float YPos = y * Settings->TileVerticalOffset;
 
             const FVector2D TilePos(XPos, YPos);
+            // --- Random gap exclusion ---
+            if (bCreateRandomGap && FVector2D::Distance(TilePos, GapCenter) < GapRadius)
+                continue;
+
+
             const float Dist = FVector2D::Distance(TilePos, Center);
 
             if (Dist > MaxDist * 1.05f)
@@ -122,7 +137,7 @@ void AHexManager::GenerateHexGrid()
         }
     }
 
-    GetWorldTimerManager().SetTimerForNextTick(this, &AHexManager::SpawnEnemiesAfterNavMeshReady);
+    SpawnAllActorsInEditor();
 }
 
 void AHexManager::SpawnEnemiesAfterNavMeshReady()
@@ -158,9 +173,10 @@ void AHexManager::SpawnAllActors(const TArray<FSpawnableData>& InSpawnables)
 
     for (const FSpawnableData& Data : InSpawnables)
     {
-        if (!Data.ActorClass || Data.SpawnAmount <= 0) continue;
+        if (!Data.ActorClass || Data.MaxSpawnAmount <= 0) continue;
+        const int32 ActualSpawnAmount = FMath::RandRange(Data.MinSpawnAmount, Data.MaxSpawnAmount);
 
-        for (int32 i = 0; i < Data.SpawnAmount; ++i)
+        for (int32 i = 0; i < ActualSpawnAmount; ++i)
         {
             int32 TileIndex = -1;
             const int32 MaxAttempts = 200;
@@ -203,7 +219,7 @@ void AHexManager::SpawnAllActors(const TArray<FSpawnableData>& InSpawnables)
             // --- NATURAL PLACEMENT LOGIC ---
             if (Data.bNaturalPlacement)
             {
-                int32 ClusterSize = FMath::RandRange(2, 5);
+                int32 ClusterSize = FMath::RandRange(Data.MinClusterSize, Data.MaxClusterSize);
                 FVector ClusterCenter = BasePos;
 
                 for (int32 j = 0; j < ClusterSize; ++j)
@@ -215,7 +231,7 @@ void AHexManager::SpawnAllActors(const TArray<FSpawnableData>& InSpawnables)
                         : FRotator::ZeroRotator;
 
                     // Glitch placement
-                    bool bIsGlitched = FMath::FRand() < 0.38f;
+                    bool bIsGlitched = FMath::FRand() < 0.25f;
                     if (bIsGlitched)
                     {
                         SpawnLoc.Z -= 50.f;
@@ -284,6 +300,11 @@ void AHexManager::SpawnAllActors(const TArray<FSpawnableData>& InSpawnables)
                     StackCount++;
                 }
             }
+        }
+
+        if (Data.bSetsTargetCoinCount)
+        {
+            TargetCoinCount = ActualSpawnAmount;
         }
     }
 }

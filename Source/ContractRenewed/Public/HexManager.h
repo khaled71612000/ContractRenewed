@@ -20,9 +20,6 @@ public:
     TSubclassOf<AActor> ActorClass;
 
     UPROPERTY(EditAnywhere, Category = "Spawn")
-    int32 SpawnAmount = 5;
-
-    UPROPERTY(EditAnywhere, Category = "Spawn")
     float MinHeightOffset = 100.f;
 
     UPROPERTY(EditAnywhere, Category = "Spawn")
@@ -39,6 +36,23 @@ public:
 
     UPROPERTY(EditAnywhere, Category="Spawn|Behavior")
     bool bNaturalPlacement = false;
+
+        // --- Spawn amount control ---
+    UPROPERTY(EditAnywhere, Category = "Spawn|Amount")
+    int32 MinSpawnAmount = 1;
+
+    UPROPERTY(EditAnywhere, Category = "Spawn|Amount")
+    int32 MaxSpawnAmount = 5;
+
+    // --- Natural placement cluster control ---
+    UPROPERTY(EditAnywhere, Category = "Spawn|Behavior", meta=(EditCondition="bNaturalPlacement"))
+    int32 MinClusterSize = 2;
+
+    UPROPERTY(EditAnywhere, Category = "Spawn|Behavior", meta=(EditCondition="bNaturalPlacement"))
+    int32 MaxClusterSize = 5;
+
+    UPROPERTY(EditAnywhere, Category="Spawn|Behavior")
+    bool bSetsTargetCoinCount = false;
 };
 
 UCLASS()
@@ -49,7 +63,7 @@ class CONTRACTRENEWED_API AHexManager : public AActor
 public:
     AHexManager();
 
-     UPROPERTY(EditAnywhere, Category="HexGrid|Setup")
+     UPROPERTY(VisibleAnywhere, Category="HexGrid|Setup")
     int32 TargetCoinCount = 10;
 
     UPROPERTY(EditAnywhere, Category="HexGrid|Materials")
@@ -59,6 +73,16 @@ protected:
     virtual void BeginPlay() override;
 
     void DestroyTiles();
+
+        // --- Island Gap Options ---
+    UPROPERTY(EditAnywhere, Category="HexGrid|Gaps")
+    bool bCreateRandomGap = false;
+
+    UPROPERTY(EditAnywhere, Category="HexGrid|Gaps", meta=(EditCondition="bCreateRandomGap"))
+    float GapRadius = 400.f;
+
+    UPROPERTY(EditAnywhere, Category="HexGrid|Gaps", meta=(EditCondition="bCreateRandomGap"))
+    float GapDepth = -1000.f; // used only for reference, not spawning
 
     UFUNCTION(BlueprintCallable, Category = "HexGrid|Testing")
     void GenerateHexGrid();
