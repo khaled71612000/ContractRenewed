@@ -540,17 +540,20 @@ void AHopperBaseCharacter::PlayPunchAnimation_Implementation(const float TimerVa
 		}
 
 		bAttackGate = false;
-		GetWorldTimerManager().SetTimer(AttackTimer,
-		                                [this]()
-		                                {
-			                                bAttackGate = true;
-			                                GetSprite()->SetRelativeLocation(FVector::ZeroVector);
-			                                if (OnAttackTimerEndNative.IsBound())
-			                                {
-				                                OnAttackTimerEndNative.Broadcast();
-			                                }
-		                                },
-		                                TimerValue, false);
+		FTimerDelegate SafeDelegate;
+		SafeDelegate.BindWeakLambda(this, [this]()
+			{
+				if (!IsValid(this)) return;
+				bAttackGate = true;
+
+				if (UPrimitiveComponent* Sprite = GetSprite())
+					Sprite->SetRelativeLocation(FVector::ZeroVector);
+
+				if (OnAttackTimerEndNative.IsBound())
+					OnAttackTimerEndNative.Broadcast();
+			});
+
+		GetWorldTimerManager().SetTimer(AttackTimer, SafeDelegate, TimerValue, false);
 	}
 }
 
