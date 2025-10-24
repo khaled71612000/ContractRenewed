@@ -15,6 +15,7 @@ public class ContractRenewedEditorTarget : TargetRules
         WindowsPlatform.bStrictConformanceMode = true;
         bValidateFormatStrings = true;
 
+
         ExtraModuleNames.AddRange( new string[] { "ContractRenewed" } );
 	}
 }

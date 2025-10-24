@@ -265,16 +265,29 @@ void AHopperBaseCharacter::ApplyPunchForceToCharacter(const FVector FromLocation
 
 void AHopperBaseCharacter::OnFootstepNative()
 {
-	if (bFootstepGate)
-	{
-		bFootstepGate = !bFootstepGate;
-		if (OnFootstepTaken.IsBound())
+	if (!bFootstepGate)
+		return;
+
+	bFootstepGate = false;
+
+	if (OnFootstepTaken.IsBound())
+		OnFootstepTaken.Broadcast();
+
+	// Safe weak capture to prevent crash after destruction
+	TWeakObjectPtr<AHopperBaseCharacter> WeakThis(this);
+
+	GetWorldTimerManager().SetTimer(
+		FootstepTimer,
+		[WeakThis]()
 		{
-			OnFootstepTaken.Broadcast();
-		}
-		GetWorldTimerManager().SetTimer(FootstepTimer, [this]() { bFootstepGate = true; }, 0.3f, false);
-	}
+			if (WeakThis.IsValid())
+				WeakThis->bFootstepGate = true;
+		},
+		0.3f,
+		false
+	);
 }
+
 
 void AHopperBaseCharacter::OnDeathNative()
 {
@@ -307,6 +320,8 @@ float AHopperBaseCharacter::GetMaxHealth() const
 
 void AHopperBaseCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	GetWorldTimerManager().ClearAllTimersForObject(this);
+
 	if (AbilitySystemComponent)
 	{
 		AbilitySystemComponent->CancelAllAbilities();
