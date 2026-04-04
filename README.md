@@ -31,6 +31,13 @@ Gameplay video: https://youtu.be/LlTJKpdFMNQ?si=q6wKxXUBBBFtXe1K
 <img width="2245" height="1266" alt="image" src="https://github.com/user-attachments/assets/50ea3172-558d-4b1c-9aae-395e3afb8e99" />
 
 
+
+## Live Demo
+
+[![Watch Gameplay Demo](https://img.youtube.com/vi/LlTJKpdFMNQ/maxresdefault.jpg)](https://youtu.be/LlTJKpdFMNQ)
+
+> Click the thumbnail above to watch the full demo video.
+
 ## Screenshots
 
 ![Screenshot 1](https://raw.githubusercontent.com/khaled71612000/ContractRenewed/HEAD/Assets/T_HealthBar_Empty.png)
@@ -42,6 +49,17 @@ Gameplay video: https://youtu.be/LlTJKpdFMNQ?si=q6wKxXUBBBFtXe1K
 ![Screenshot 4](https://raw.githubusercontent.com/khaled71612000/ContractRenewed/HEAD/Assets/coin.png)
 
 ![Screenshot 5](https://raw.githubusercontent.com/khaled71612000/ContractRenewed/HEAD/Assets/dust_poof_01.png)
+
+
+## Tech Stack
+
+| Technology | Role |
+|---|---|
+| Unreal Engine 4/5 | Game engine (Blueprints + C++) |
+| C++ | Gameplay systems, custom components |
+| HLSL / USF | Custom shader authoring |
+| Git LFS | Large asset version control |
+
 
 ## Getting Started
 
