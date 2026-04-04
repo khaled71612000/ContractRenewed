@@ -24,5 +24,3 @@ Gameplay video: https://youtu.be/LlTJKpdFMNQ?si=q6wKxXUBBBFtXe1K
 <img width="2245" height="1268" alt="image" src="https://github.com/user-attachments/assets/8db55c42-3209-4efe-bd1f-b987d2153bc3" />
 <img width="2243" height="1266" alt="image" src="https://github.com/user-attachments/assets/923b8351-9847-424f-8858-efb7b5d19c44" />
 <img width="2245" height="1266" alt="image" src="https://github.com/user-attachments/assets/50ea3172-558d-4b1c-9aae-395e3afb8e99" />
-
-[YouTube Video](https://youtu.be/gF-XHie0oZw?si=bf95pC5VOy85UbZg)
