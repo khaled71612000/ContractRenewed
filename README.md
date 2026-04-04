@@ -1,35 +1,37 @@
-# ContractRenewed
+# Contract Renewed
 
-> An Unreal Engine C++ action game featuring dynamic gameplay systems and polished mechanics.
 
 ![Unreal Engine](https://img.shields.io/badge/Unreal%20Engine-0E1128?logo=unrealengine&logoColor=white)
 ![C++](https://img.shields.io/badge/C++-00599C?logo=c%2B%2B&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-## Overview
+I built a game where HR keeps reviving you until morale improves.
 
-An Unreal Engine C++ action game featuring dynamic gameplay systems and polished mechanics.
+This was my solo submission for the One Man Army modifier in the Epic MegaJam, built in 6 days with Unreal Engine 5.6.
 
-Built with **Unreal Engine** and **C++**, demonstrating professional game development patterns: the Actor-Component model, Unreal's reflection system (UPROPERTY/UFUNCTION), Blueprint interoperability, and optimized gameplay systems.
+You play as a burnt out employee trapped inside a fake Motivational Simulation Program™ as a 2D character moving through a 3D world, getting rebooted into “new departments” every time they fail.
 
-## Features
+I focused on:
+🔹 procedural hex islands
+🔹 fake corporate ranks across runs
+🔹 two levels with different tone and movement feel
+🔹 custom VFX, SFX, and ambient loops
 
-- Unreal Engine gameplay framework (GameMode, GameState, PlayerController)
-- Custom C++ Actor and Component classes
-- Blueprint-C++ interoperability
-- Physics and collision systems
-- Optimized asset loading
+Fall, fail, or finish the shift, HR will always bring you back.
 
-## Technologies Used
+For a 6 day solo jam project, I’m really happy with how clearly the idea came through
 
-| Technology | Details |
-|------------|---------|
-| Unreal Engine | 4.x / 5.x |
-| C++ | Modern C++17 |
-| Blueprints | Visual scripting |
-| Chaos Physics | Physics simulation |
+Play it here: https://khaledelsayed.itch.io/contract-renewed
 
-## Screenshots / Demo
+Gameplay video: https://youtu.be/LlTJKpdFMNQ?si=q6wKxXUBBBFtXe1K
+
+<img width="2173" height="1185" alt="image" src="https://github.com/user-attachments/assets/79890643-438c-4430-bd1c-39ee3f794277" />
+<img width="2245" height="1268" alt="image" src="https://github.com/user-attachments/assets/8db55c42-3209-4efe-bd1f-b987d2153bc3" />
+<img width="2243" height="1266" alt="image" src="https://github.com/user-attachments/assets/923b8351-9847-424f-8858-efb7b5d19c44" />
+<img width="2245" height="1266" alt="image" src="https://github.com/user-attachments/assets/50ea3172-558d-4b1c-9aae-395e3afb8e99" />
+
+
+## Screenshots
 
 ![Screenshot 1](https://raw.githubusercontent.com/khaled71612000/ContractRenewed/HEAD/Assets/T_HealthBar_Empty.png)
 
@@ -44,40 +46,15 @@ Built with **Unreal Engine** and **C++**, demonstrating professional game develo
 ## Getting Started
 
 ### Prerequisites
-
 - [Unreal Engine](https://www.unrealengine.com/en-US/download) 4.x or 5.x
 - Visual Studio 2019 or 2022 with **Desktop development with C++**
-- Git LFS
+- Git LFS (`git lfs install`)
 
-### Installation
-
+### Setup
 ```bash
 git lfs install
 git clone https://github.com/khaled71612000/ContractRenewed.git
-cd ContractRenewed
 ```
-
-1. Right-click `.uproject` → **Generate Visual Studio project files**
-2. Open `.sln` in Visual Studio
-3. Set config: **Development Editor | Win64**
-4. Build (Ctrl+Shift+B) then launch the editor
-
-## Project Structure
-
-```
-ContractRenewed/
-├── Source/                  # C++ source files
-  Source/ContractRenewed/Private/Actors/HopperBaseCharacter.cpp
-  Source/ContractRenewed/Private/Core/AI/HopperAIController.cpp
-  Source/ContractRenewed/Private/Core/AI/Tasks/HopperBTTask_FindRandomLocation.cpp
-  Source/ContractRenewed/Private/Core/Abilities/AbilityTask_SuccessFailEvent.cpp
-  Source/ContractRenewed/Private/Core/Abilities/HopperAttributeSet.cpp
-  Source/ContractRenewed/Private/Core/Abilities/HopperDamageEffect.cpp
-├── Content/                 # Assets, blueprints, levels
-├── Config/                  # Project settings
-└── ContractRenewed.uproject
-```
-
-## License
-
-[MIT License](LICENSE)
+1. Right-click the `.uproject` → **Generate Visual Studio project files**
+2. Open `.sln` → Build (**Development Editor | Win64**)
+3. Launch via Unreal Editor
