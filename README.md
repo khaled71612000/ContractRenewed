@@ -38,19 +38,6 @@ Gameplay video: https://youtu.be/LlTJKpdFMNQ?si=q6wKxXUBBBFtXe1K
 
 > Click the thumbnail above to watch the full demo video.
 
-## Screenshots
-
-![Screenshot 1](https://raw.githubusercontent.com/khaled71612000/ContractRenewed/HEAD/Assets/T_HealthBar_Empty.png)
-
-![Screenshot 2](https://raw.githubusercontent.com/khaled71612000/ContractRenewed/HEAD/Assets/T_HealthBar_Full.png)
-
-![Screenshot 3](https://raw.githubusercontent.com/khaled71612000/ContractRenewed/HEAD/Assets/badguy_spritesheet.png)
-
-![Screenshot 4](https://raw.githubusercontent.com/khaled71612000/ContractRenewed/HEAD/Assets/coin.png)
-
-![Screenshot 5](https://raw.githubusercontent.com/khaled71612000/ContractRenewed/HEAD/Assets/dust_poof_01.png)
-
-
 ## Tech Stack
 
 | Technology | Role |
